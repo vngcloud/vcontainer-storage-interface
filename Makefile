@@ -25,7 +25,7 @@ TAR_FILE	?= rootfs.tar
 
 GOOS		?= $(shell go env GOOS)
 GOPROXY		?= $(shell go env GOPROXY)
-VERSION         ?= $(shell git describe --dirty --tags --match='v*')
+VERSION     ?= $(shell git describe --dirty --tags --match='v*')
 GOARCH		:=
 GOFLAGS		:=
 TAGS		:=
@@ -108,13 +108,14 @@ build-local-image-%:
 		.
 
 bush-local-image-%:
+	VERSION=latest
 	$(CONTAINER_ENGINE) buildx build --output type=docker \
-		--build-arg VERSION=$(VERSION) \
-		--tag $(REGISTRY)/$*:$(VERSION) \
+		--build-arg VERSION=latest \
+		--tag $(REGISTRY)/$*:latest \
 		--target $* \
 		.
 
-	$(CONTAINER_ENGINE) image tag $(REGISTRY)/$*:$(VERSION) $(DEV_REGISTRY)/$*:latest
+	$(CONTAINER_ENGINE) image tag $(REGISTRY)/$*:latest $(DEV_REGISTRY)/$*:latest
 	$(CONTAINER_ENGINE) push $(DEV_REGISTRY)/$*:latest
 
 # Build all images locally
