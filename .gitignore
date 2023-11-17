@@ -23,3 +23,5 @@ TestResults.xml
 .idea
 /tmp/
 /etc/
+
+vcontainer-storage-interface
