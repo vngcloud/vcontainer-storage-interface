@@ -27,6 +27,7 @@ type (
 		compute      *client.ServiceClient
 		blockstorage *client.ServiceClient
 		portal       *client.ServiceClient
+		vBackUp      *client.ServiceClient
 		bsOpts       BlockStorageOpts
 		metadataOpts metadata.Opts
 		extraInfo    *ExtraInfo
@@ -339,7 +340,8 @@ func (s *vContainer) GetMaxVolLimit() int64 {
 }
 
 func (s *vContainer) CreateSnapshot(name, volID string) (*lSnapV2Obj.Snapshot, error) {
-	opts := lSnapV2.NewCreateOpts(s.extraInfo.ProjectID, volID, "vcontainer_snapshot", "true", name, 7)
+	opts := lSnapV2.NewCreateOpts(s.extraInfo.ProjectID, volID,
+		fmt.Sprintf("vContainer volume snapshot of volume %s", volID), true, name, 7)
 	mc := metrics.NewMetricContext("snapshot", "create")
 	snap, err := lSnapV2.Create(s.blockstorage, opts)
 	if mc.ObserveRequest(err) != nil {
@@ -378,7 +380,8 @@ func (s *vContainer) ListSnapshots(page string, size int, volumeID, status, name
 	p_, s_ := standardPaging(size, page)
 	opts := lSnap.NewListOpts(p_, s_, volumeID, status, name)
 	mc := metrics.NewMetricContext("snapshot", "list")
-	err := lSnap.List(s.blockstorage, opts).EachPage(func(page pagination.IPage) (bool, error) {
+	fmt.Printf("The url is: %s\n", s.vBackUp.Endpoint)
+	err := lSnap.List(s.vBackUp, opts).EachPage(func(page pagination.IPage) (bool, error) {
 		tfPage := page.GetBody().(*lSnap.ListResponse)
 		nextPage = tfPage.NextPage()
 		lstSnapshot = append(lstSnapshot, tfPage.ToListSnapshotObjects()...)

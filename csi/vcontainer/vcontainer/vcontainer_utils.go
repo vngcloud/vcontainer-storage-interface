@@ -48,7 +48,7 @@ func GetProvider() (IVContainer, error) {
 	return vcontainerIns, nil
 }
 
-func NewVContainer(compute, blockstorage, portal *vclient.ServiceClient, bsOpts BlockStorageOpts, metadataOpts metadata.Opts) IVContainer {
+func NewVContainer(compute, blockstorage, portal, vBackUp *vclient.ServiceClient, bsOpts BlockStorageOpts, metadataOpts metadata.Opts) IVContainer {
 	if metadataOpts.SearchOrder == "" {
 		metadataOpts.SearchOrder = fmt.Sprintf("%s,%s", metadata.ConfigDriveID, metadata.MetadataID)
 	}
@@ -59,6 +59,7 @@ func NewVContainer(compute, blockstorage, portal *vclient.ServiceClient, bsOpts 
 		compute:      compute,
 		blockstorage: blockstorage,
 		portal:       portal,
+		vBackUp:      vBackUp,
 		bsOpts:       bsOpts,
 		metadataOpts: metadataOpts,
 	}
@@ -80,7 +81,8 @@ func createProvider() (IVContainer, error) {
 	computeClient, _ := vcontainer.NewCompute(cfg.Global.ComputeURL, provider)
 	blockstorageClient, _ := vcontainer.NewBlockstorage(cfg.Global.BlockstorageURL, provider)
 	portalClient, _ := vcontainer.NewPortal(cfg.Global.PortalURL, provider)
-	vcon := NewVContainer(computeClient, blockstorageClient, portalClient, cfg.BlockStorage, cfg.Metadata)
+	vBackUpClient, _ := vcontainer.NewVBackUpGateWay(cfg.Global.VBackUpGateWayURL, provider)
+	vcon := NewVContainer(computeClient, blockstorageClient, portalClient, vBackUpClient, cfg.BlockStorage, cfg.Metadata)
 
 	return vcon, nil
 }
