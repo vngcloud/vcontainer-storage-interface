@@ -3,17 +3,13 @@ package driver
 import (
 	"fmt"
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
-	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v1/snapshot/obj"
-	obj2 "github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v2/snapshot/obj"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/metadata"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/vcontainer/vcontainer"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"k8s.io/klog/v2"
 	"time"
 )
@@ -264,166 +260,15 @@ func (s *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *c
 }
 
 func (s *controllerServer) CreateSnapshot(ctx context.Context, req *csi.CreateSnapshotRequest) (*csi.CreateSnapshotResponse, error) {
-	klog.V(4).Infof("CreateSnapshot: called with args %+v", protosanitizer.StripSecrets(*req))
-
-	name := req.Name
-	volumeID := req.GetSourceVolumeId()
-
-	if name == "" {
-		return nil, status.Error(codes.InvalidArgument, "Snapshot name must be provided in CreateSnapshot request")
-	}
-
-	if volumeID == "" {
-		return nil, status.Error(codes.InvalidArgument, "VolumeID must be provided in CreateSnapshot request")
-	}
-
-	// Verify a snapshot with the provided name doesn't already exist for this tenant
-	snapshots, _, err := s.Cloud.ListSnapshots("1", 10, volumeID, "", "name")
-	if err != nil {
-		klog.Errorf("Failed to query for existing Snapshot during CreateSnapshot: %v", err)
-		return nil, status.Error(codes.Internal, "Failed to get snapshots")
-	}
-
-	var snap *obj2.Snapshot
-	if len(snapshots) == 1 {
-		snap := snapshots[0]
-
-		if snap.VolumeID != volumeID {
-			return nil, status.Error(codes.AlreadyExists, "Snapshot with given name already exists, with different source volume ID")
-		}
-
-		klog.V(3).Infof("Found existing snapshot %s from volume with ID: %s", name, volumeID)
-
-	} else if len(snapshots) > 1 {
-		klog.Errorf("found multiple existing snapshots with selected name (%s) during create", name)
-		return nil, status.Error(codes.Internal, "Multiple snapshots reported by Cinder with same name")
-
-	} else {
-		snap, err = s.Cloud.CreateSnapshot(name, volumeID)
-		if err != nil {
-			klog.Errorf("Failed to Create snapshot: %v", err)
-			return nil, status.Error(codes.Internal, fmt.Sprintf("CreateSnapshot failed with error %v", err))
-		}
-
-		klog.V(3).Infof("CreateSnapshot %s from volume with ID: %s", name, volumeID)
-	}
-
-	pt, err := parseTime(snap.CreatedAt)
-	if err != nil {
-		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to parse snapshot creation time [%v]; ERR: %v", snap.CreatedAt, err))
-	}
-
-	ctime := timestamppb.New(*pt)
-	if err := ctime.CheckValid(); err != nil {
-		klog.Errorf("Error to convert time to timestamp: %v", err)
-	}
-
-	err = s.Cloud.WaitSnapshotReady(snap.ID)
-	if err != nil {
-		klog.Errorf("Failed to WaitSnapshotReady: %v", err)
-		return nil, status.Error(codes.Internal, fmt.Sprintf("CreateSnapshot failed with error %v", err))
-	}
-
-	return &csi.CreateSnapshotResponse{
-		Snapshot: &csi.Snapshot{
-			SnapshotId:     snap.ID,
-			SizeBytes:      int64(snap.Size * 1024 * 1024 * 1024),
-			SourceVolumeId: snap.VolumeID,
-			CreationTime:   ctime,
-			ReadyToUse:     true,
-		},
-	}, nil
+	return nil, status.Error(codes.Unimplemented, "CreateSnapshot is not yet implemented")
 }
 
 func (s *controllerServer) DeleteSnapshot(ctx context.Context, req *csi.DeleteSnapshotRequest) (*csi.DeleteSnapshotResponse, error) {
-	klog.V(4).Infof("DeleteSnapshot: called with args %+v", protosanitizer.StripSecrets(*req))
-
-	id := req.GetSnapshotId()
-	snapshot, err := s.Cloud.GetSnapshotByID(id)
-	if err != nil {
-		klog.Errorf("DeleteSnapshot; Failed to get snapshot [ID=%s]: %v", id, err)
-		return nil, status.Error(codes.Internal, fmt.Sprintf("DeleteSnapshot failed with error %v", err))
-	}
-
-	volumeID := snapshot.VolumeID
-
-	if id == "" {
-		return nil, status.Error(codes.InvalidArgument, "Snapshot ID must be provided in DeleteSnapshot request")
-	}
-
-	// Delegate the check to openstack itself
-	err = s.Cloud.DeleteSnapshot(volumeID, id)
-	if err != nil {
-		klog.Errorf("Failed to Delete snapshot: %v", err)
-		return nil, status.Error(codes.Internal, fmt.Sprintf("DeleteSnapshot failed with error %v", err))
-	}
-
-	return &csi.DeleteSnapshotResponse{}, nil
+	return nil, status.Error(codes.Unimplemented, "DeleteSnapshot is not yet implemented")
 }
 
 func (s *controllerServer) ListSnapshots(ctx context.Context, req *csi.ListSnapshotsRequest) (*csi.ListSnapshotsResponse, error) {
-	klog.V(4).Infof("ListSnapshots; called with request %+v", req)
-	snapshotID := req.GetSnapshotId()
-
-	if snapshotID != "" {
-		snap, err := s.Cloud.GetSnapshotByID(snapshotID)
-		if err != nil {
-			return nil, status.Error(codes.Internal, fmt.Sprintf("failed to get snapshot [%v]; ERR: %v", snapshotID, err))
-		}
-
-		pt, err := parseTime(snap.CreatedAt)
-		if err != nil {
-			return nil, status.Error(codes.Internal, fmt.Sprintf("failed to parse snapshot creation time [%v]; ERR: %v", snap.CreatedAt, err))
-		}
-
-		ctime := timestamppb.New(*pt)
-		entry := &csi.ListSnapshotsResponse_Entry{
-			Snapshot: &csi.Snapshot{
-				SizeBytes:      int64(snap.Size * 1024 * 1024 * 1024),
-				SnapshotId:     snap.ID,
-				SourceVolumeId: snap.VolumeID,
-				CreationTime:   ctime,
-				ReadyToUse:     true,
-			},
-		}
-
-		entries := []*csi.ListSnapshotsResponse_Entry{entry}
-		return &csi.ListSnapshotsResponse{
-			Entries: entries,
-		}, ctime.CheckValid()
-	}
-
-	var slist []*obj.Snapshot
-	var err error
-	var nextPageToken string
-
-	slist, nextPageToken, err = s.Cloud.ListSnapshots(req.StartingToken, int(req.MaxEntries), req.GetSourceVolumeId(), "active", "")
-	if err != nil {
-		klog.Errorf("Failed to ListSnapshots: %v", err)
-		return nil, status.Errorf(codes.Internal, "ListSnapshots failed with error %v", err)
-	}
-
-	sentries := make([]*csi.ListSnapshotsResponse_Entry, 0, len(slist))
-	for _, v := range slist {
-		ctime, err := parseTime(v.CreatedAt)
-		if err != nil {
-			klog.Errorf("Error to parse snapshot creation time [%v]; ERR: %v", v.CreatedAt, err)
-		}
-		sentry := csi.ListSnapshotsResponse_Entry{
-			Snapshot: &csi.Snapshot{
-				SizeBytes:      int64(v.Size * 1024 * 1024 * 1024),
-				SnapshotId:     v.ID,
-				SourceVolumeId: v.VolumeID,
-				CreationTime:   &timestamp.Timestamp{Seconds: ctime.Unix()},
-				ReadyToUse:     true,
-			},
-		}
-		sentries = append(sentries, &sentry)
-	}
-	return &csi.ListSnapshotsResponse{
-		Entries:   sentries,
-		NextToken: nextPageToken,
-	}, nil
+	return nil, status.Error(codes.Unimplemented, "ListSnapshots is not yet implemented")
 }
 
 func (s *controllerServer) ControllerGetCapabilities(ctx context.Context, req *csi.ControllerGetCapabilitiesRequest) (*csi.ControllerGetCapabilitiesResponse, error) {
