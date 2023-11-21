@@ -4,7 +4,6 @@ go 1.20
 
 require (
 	github.com/container-storage-interface/spec v1.8.0
-	github.com/golang/protobuf v1.5.3
 	github.com/kubernetes-csi/csi-lib-utils v0.15.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
@@ -13,7 +12,6 @@ require (
 	golang.org/x/net v0.14.0
 	golang.org/x/sys v0.12.0
 	google.golang.org/grpc v1.54.0
-	google.golang.org/protobuf v1.30.0
 	gopkg.in/gcfg.v1 v1.2.3
 	k8s.io/apimachinery v0.28.2
 	k8s.io/component-base v0.28.2
@@ -35,6 +33,7 @@ require (
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/mock v1.6.0 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20230901174712-0191c66da455 // indirect
@@ -65,6 +64,7 @@ require (
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/tools v0.12.1-0.20230815132531-74c255bcf846 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19 // indirect
+	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

@@ -196,20 +196,19 @@ func (s *controllerServer) ControllerPublishVolume(ctx context.Context, req *csi
 		return nil, status.Error(codes.InvalidArgument, "Volume capability is required")
 	}
 
-	_, err = s.Cloud.GetVolume(volumeID)
+	vol, err := s.Cloud.GetVolume(volumeID)
 	if err != nil {
 		klog.Errorf("ControllerPublishVolume; failed to get volume %s; ERR: %v", volumeID, err)
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to get volume; ERR: %v", err))
 	}
 
-	//_, err = s.Cloud.GetInstanceByID(instanceID)
-	//if err != nil {
-	//	klog.Errorf("ControllerPublishVolume; failed to get instance %s; ERR: %v", instanceID, err)
-	//	return nil, status.Error(codes.Internal, fmt.Sprintf("failed to get instance; ERR: %v", err))
-	//}
-
 	_, err = s.Cloud.AttachVolume(instanceID, volumeID)
 	if err != nil {
+		if vol != nil && vol.Status == vcontainer.VolumeInUseStatus {
+			klog.V(4).Infof("ControllerPublishVolume; volume %s attached to instance %s successfully", volumeID, instanceID)
+			return &csi.ControllerPublishVolumeResponse{}, nil
+		}
+
 		klog.Errorf("ControllerPublishVolume; failed to attach volume %s to instance %s; ERR: %v", volumeID, instanceID, err)
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to attach volume; ERR: %v", err))
 	}
@@ -227,11 +226,7 @@ func (s *controllerServer) ControllerPublishVolume(ctx context.Context, req *csi
 	}
 
 	klog.V(4).Infof("ControllerPublishVolume; volume %s attached to instance %s successfully", volumeID, instanceID)
-	return &csi.ControllerPublishVolumeResponse{
-		//PublishContext: map[string]string{
-		//	"DevicePath": devicePath,
-		//},
-	}, nil
+	return &csi.ControllerPublishVolumeResponse{}, nil
 }
 
 func (s *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {

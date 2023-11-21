@@ -27,9 +27,9 @@ const (
 	diskDetachFactor    = 1.2
 	diskDetachSteps     = 13
 
-	operationFinishInitDelay = 1 * time.Second
-	operationFinishFactor    = 1.1
-	operationFinishSteps     = 10
+	operationFinishInitDelay = 30 * time.Second
+	operationFinishFactor    = 1.2
+	operationFinishSteps     = 15
 
 	snapshotReadyStatus = "active"
 	snapReadyDuration   = 1 * time.Second
