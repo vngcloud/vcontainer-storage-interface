@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog/v2"
+	"strings"
 	"time"
 )
 
@@ -242,6 +243,10 @@ func (s *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *c
 
 	err := s.Cloud.DetachVolume(instanceID, volumeID)
 	if err != nil {
+		if strings.TrimSpace(err.Error()) == "This volume is available" {
+			return &csi.ControllerUnpublishVolumeResponse{}, nil
+		}
+
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to detach volume; ERR: %v", err))
 	}
 
