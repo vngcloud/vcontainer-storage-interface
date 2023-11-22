@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
+	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/compute/v2/extensions/volume_attach"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/metadata"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/vcontainer/vcontainer"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog/v2"
-	"strings"
 	"time"
 )
 
@@ -243,10 +244,9 @@ func (s *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *c
 
 	err := s.Cloud.DetachVolume(instanceID, volumeID)
 	if err != nil {
-		if strings.TrimSpace(err.Error()) == "This volume is available" {
+		if volume_attach.IsErrAttachNotFound(err) {
 			return &csi.ControllerUnpublishVolumeResponse{}, nil
 		}
-
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to detach volume; ERR: %v", err))
 	}
 
