@@ -372,7 +372,7 @@ func (s *controllerServer) ControllerExpandVolume(ctx context.Context, req *csi.
 	if volume.Size >= volSizeGB {
 		klog.V(2).Infof("ControllerExpandVolume; volume %s already has size %d GiB", volumeID, volume.Size)
 		return &csi.ControllerExpandVolumeResponse{
-			CapacityBytes:         int64(volume.Size * (1024 ^ 3)),
+			CapacityBytes:         int64(volume.Size * 1024 * 1024 * 1024),
 			NodeExpansionRequired: true,
 		}, nil
 	}

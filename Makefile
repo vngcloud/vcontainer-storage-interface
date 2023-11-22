@@ -37,7 +37,7 @@ IMAGE_NAMES	?= vcontainer-storage-interface
 ARCH		?= amd64
 ARCHS		?= amd64 arm arm64 ppc64le s390x
 BUILD_CMDS	?= vcontainer-storage-interface
-DEV_REGISTRY ?= docker.io/manhcuong8499
+DEV_REGISTRY ?= quay.io/cuongdm8499
 
 # CTI targets
 
