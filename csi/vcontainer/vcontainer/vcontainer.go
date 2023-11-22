@@ -245,10 +245,6 @@ func (s *vContainer) DetachVolume(instanceID, volumeID string) error {
 		return fmt.Errorf("volume %s not found", volumeID)
 	}
 
-	if volume.Status != VolumeInUseStatus {
-		return fmt.Errorf("volume %s is in-use status", volumeID)
-	}
-
 	if volume.PersistentVolume != true {
 		return fmt.Errorf("volume %s is not persistent volume", volumeID)
 	}
