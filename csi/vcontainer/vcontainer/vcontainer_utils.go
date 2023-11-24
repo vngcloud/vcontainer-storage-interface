@@ -2,6 +2,7 @@ package vcontainer
 
 import (
 	"fmt"
+	"github.com/cuongpiger/joat/utils"
 	vclient "github.com/vngcloud/vcontainer-sdk/client"
 	"github.com/vngcloud/vcontainer-sdk/vcontainer"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/client"
@@ -48,7 +49,7 @@ func GetProvider() (IVContainer, error) {
 	return vcontainerIns, nil
 }
 
-func NewVContainer(compute, blockstorage, portal, vBackUp *vclient.ServiceClient, bsOpts BlockStorageOpts, metadataOpts metadata.Opts) IVContainer {
+func NewVContainer(compute, blockstorage, portal *vclient.ServiceClient, bsOpts BlockStorageOpts, metadataOpts metadata.Opts) IVContainer {
 	if metadataOpts.SearchOrder == "" {
 		metadataOpts.SearchOrder = fmt.Sprintf("%s,%s", metadata.ConfigDriveID, metadata.MetadataID)
 	}
@@ -59,7 +60,6 @@ func NewVContainer(compute, blockstorage, portal, vBackUp *vclient.ServiceClient
 		compute:      compute,
 		blockstorage: blockstorage,
 		portal:       portal,
-		vBackUp:      vBackUp,
 		bsOpts:       bsOpts,
 		metadataOpts: metadataOpts,
 	}
@@ -77,12 +77,14 @@ func createProvider() (IVContainer, error) {
 	}
 	logcfg(cfg)
 
+	vserverV1 := utils.NormalizeURL(cfg.Global.VServerURL) + "v1"
+	vserverV2 := utils.NormalizeURL(cfg.Global.VServerURL) + "v2"
+
 	provider, err := client.NewVContainerClient(&cfg.Global)
-	computeClient, _ := vcontainer.NewCompute(cfg.Global.ComputeURL, provider)
-	blockstorageClient, _ := vcontainer.NewBlockstorage(cfg.Global.BlockstorageURL, provider)
-	portalClient, _ := vcontainer.NewPortal(cfg.Global.PortalURL, provider)
-	vBackUpClient, _ := vcontainer.NewVBackUpGateWay(cfg.Global.VBackUpGateWayURL, provider)
-	vcon := NewVContainer(computeClient, blockstorageClient, portalClient, vBackUpClient, cfg.BlockStorage, cfg.Metadata)
+	computeClient, _ := vcontainer.NewCompute(vserverV2, provider)
+	blockstorageClient, _ := vcontainer.NewBlockstorage(vserverV2, provider)
+	portalClient, _ := vcontainer.NewPortal(vserverV1, provider)
+	vcon := NewVContainer(computeClient, blockstorageClient, portalClient, cfg.BlockStorage, cfg.Metadata)
 
 	return vcon, nil
 }

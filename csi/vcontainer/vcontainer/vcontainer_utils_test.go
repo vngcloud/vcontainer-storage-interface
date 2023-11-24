@@ -46,11 +46,9 @@ rescan-on-resize=true`
 	assert := assert.New(t)
 	expectedOpts := Config{}
 	expectedOpts.Global.IdentityURL = fakeIdentityURL
-	expectedOpts.Global.ComputeURL = fakeComputeURL
-	expectedOpts.Global.BlockstorageURL = fakeBlockstorageURL
+	expectedOpts.Global.VServerURL = fakeComputeURL
 	expectedOpts.Global.ClientID = fakeClientID
 	expectedOpts.Global.ClientSecret = fakeClientSecret
-	expectedOpts.Global.CAFile = fakeCAfile
 	expectedOpts.BlockStorage.RescanOnResize = true
 
 	// Invoke GetConfigFromFiles
