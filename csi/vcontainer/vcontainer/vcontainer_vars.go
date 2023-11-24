@@ -11,7 +11,7 @@ var (
 )
 
 var (
-	configFiles = []string{"/etc/config/vcontainer-config.conf"}
+	configFiles = []string{"/etc/config/vcontainer-csi-config.conf"}
 )
 
 const (
