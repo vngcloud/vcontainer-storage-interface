@@ -37,7 +37,6 @@ IMAGE_NAMES	?= vcontainer-storage-interface
 ARCH		?= amd64
 ARCHS		?= amd64 arm arm64 ppc64le s390x
 BUILD_CMDS	?= vcontainer-storage-interface
-DEV_REGISTRY ?= quay.io/cuongdm8499
 
 # CTI targets
 
@@ -107,21 +106,8 @@ build-local-image-%:
 		--target $* \
 		.
 
-bush-local-image-%:
-	VERSION=latest
-	$(CONTAINER_ENGINE) buildx build --output type=docker \
-		--build-arg VERSION=latest \
-		--tag $(REGISTRY)/$*:latest \
-		--target $* \
-		.
-
-	$(CONTAINER_ENGINE) image tag $(REGISTRY)/$*:latest $(DEV_REGISTRY)/$*:latest
-	$(CONTAINER_ENGINE) push $(DEV_REGISTRY)/$*:latest
-
 # Build all images locally
 build-local-images: $(addprefix build-local-image-,$(IMAGE_NAMES))
-
-bush-local-images: $(addprefix bush-local-image-,$(IMAGE_NAMES))
 
 # Build a single image for all architectures in ARCHS and push it to REGISTRY
 push-multiarch-image-%:
