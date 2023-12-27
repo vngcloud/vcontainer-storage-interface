@@ -1,6 +1,6 @@
 github.com/container-storage-interface/spec v1.8.0
 github.com/cuongpiger/joat v0.0.3
-github.com/vngcloud/vcontainer-sdk stable
+github.com/vngcloud/vcontainer-sdk v0.1.1
 github.com/golang/protobuf v1.5.3
 github.com/imroc/req/v3 v3.42.2
 github.com/kubernetes-csi/csi-lib-utils v0.15.0
