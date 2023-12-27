@@ -74,15 +74,18 @@ func (s *vContainer) ListVolumes(limit int, startingToken string) ([]*obj.Volume
 	var nextPage string
 	var vols []*obj.Volume
 
-	page, size := standardPaging(limit, startingToken)
-	opts := lVol.NewListOpts(s.extraInfo.ProjectID, "", page, size)
-	mc := metrics.NewMetricContext("volume", "list")
-	err := lVol.List(s.blockstorage, opts).EachPage(func(page pagination.IPage) (bool, error) {
-		tfPage := page.GetBody().(*lVol.ListResponse)
-		nextPage = tfPage.NextPage()
-		vols = append(vols, tfPage.ToListVolumeObjects()...)
-		return true, nil
-	})
+	//page, size := standardPaging(limit, startingToken)
+	//opts := lVol.NewListOpts(s.extraInfo.ProjectID, "", page, size)
+	//mc := metrics.NewMetricContext("volume", "list")
+	//err := lVol.List(s.blockstorage, opts).EachPage(func(page pagination.IPage) (bool, error) {
+	//	tfPage := page.GetBody().(*lVol.ListResponse)
+	//	nextPage = tfPage.NextPage()
+	//	vols = append(vols, tfPage.ToListVolumeObjects()...)
+	//	return true, nil
+	//})
+
+	mc := metrics.NewMetricContext("volume", "list-all")
+	vols, err := lVol.ListAll(s.blockstorage, lVol.NewListAllOpts(s.extraInfo.ProjectID))
 	if mc.ObserveRequest(err) != nil {
 		return nil, nextPage, err
 	}
@@ -284,7 +287,6 @@ func (s *vContainer) WaitDiskDetached(instanceID string, volumeID string) error 
 }
 
 func (s *vContainer) ExpandVolume(volumeTypeID, volumeID string, newSize uint64) error {
-	fmt.Printf("New size if %d", newSize)
 	opts := lVolAct.NewResizeOpts(s.extraInfo.ProjectID, volumeTypeID, volumeID, newSize)
 	mc := metrics.NewMetricContext("volume", "extend")
 	_, err := lVolAct.Resize(s.blockstorage, opts)

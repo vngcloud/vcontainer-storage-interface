@@ -248,7 +248,7 @@ func (s *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *c
 			return &csi.ControllerUnpublishVolumeResponse{}, nil
 		}
 
-		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to detach volume; ERR: %v", err))
+		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to detach the volume; ERR: %#v", err))
 	}
 
 	err = s.Cloud.WaitDiskDetached(instanceID, volumeID)
