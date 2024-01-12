@@ -123,7 +123,7 @@ func (s *vContainer) CreateVolume(name string, size uint64, vtype, availability 
 			VolumeTypeId:     vtype,
 			CreatedFrom:      "NEW",
 			PersistentVolume: true,
-			MultiAttach:      true,
+			MultiAttach:      false,
 		})
 
 	mc := metrics.NewMetricContext("volume", "create")
