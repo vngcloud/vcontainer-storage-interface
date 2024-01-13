@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
-	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/compute/v2/extensions/volume_attach"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/metadata"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/vcontainer/vcontainer"
@@ -242,17 +241,9 @@ func (s *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *c
 		return nil, status.Error(codes.InvalidArgument, "Volume ID is required")
 	}
 
-	err := s.Cloud.DetachVolume(instanceID, volumeID)
-	if err != nil {
-		if volume_attach.IsErrAttachNotFound(err) {
-			return &csi.ControllerUnpublishVolumeResponse{}, nil
-		}
+	_ = s.Cloud.DetachVolume(instanceID, volumeID)
 
-		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to detach the volume; ERR: %#v", err))
-	}
-
-	err = s.Cloud.WaitDiskDetached(instanceID, volumeID)
-	if err != nil {
+	if err := s.Cloud.WaitDiskDetached(instanceID, volumeID); err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to wait disk detached; ERR: %v", err))
 	}
 

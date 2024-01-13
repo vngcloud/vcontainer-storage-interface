@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v2/volume/obj"
-	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/compute/v2/extensions/volume_attach"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/blockdevice"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/metadata"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/mount"
@@ -515,7 +514,7 @@ func (s *nodeServer) nodePublishVolumeForBlock(req *csi.NodePublishVolumeRequest
 	return &csi.NodePublishVolumeResponse{}, nil
 }
 
-func (s *nodeServer) nodeUnpublishEphemeral(req *csi.NodeUnpublishVolumeRequest, vol *obj.Volume) (*csi.NodeUnpublishVolumeResponse, error) {
+func (s *nodeServer) nodeUnpublishEphemeral(_ *csi.NodeUnpublishVolumeRequest, vol *obj.Volume) (*csi.NodeUnpublishVolumeResponse, error) {
 	volumeID := vol.VolumeId
 	var instanceID string
 
@@ -525,25 +524,14 @@ func (s *nodeServer) nodeUnpublishEphemeral(req *csi.NodeUnpublishVolumeRequest,
 		return nil, status.Error(codes.FailedPrecondition, "Volume attachment not found in request")
 	}
 
-	err := s.Cloud.DetachVolume(instanceID, volumeID)
-	if err != nil {
-		if volume_attach.IsErrAttachNotFound(err) {
-			klog.V(3).Infof("This volume has been detach before: %v", err)
-			return &csi.NodeUnpublishVolumeResponse{}, nil
-		}
+	_ = s.Cloud.DetachVolume(instanceID, volumeID)
 
-		klog.V(3).Infof("Failed to DetachVolume: %v", err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	err = s.Cloud.WaitDiskDetached(instanceID, volumeID)
-	if err != nil {
+	if err := s.Cloud.WaitDiskDetached(instanceID, volumeID); err != nil {
 		klog.V(3).Infof("Failed to WaitDiskDetached: %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	err = s.Cloud.DeleteVolume(volumeID)
-	if err != nil {
+	if err := s.Cloud.DeleteVolume(volumeID); err != nil {
 		klog.V(3).Infof("Failed to DeleteVolume: %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
