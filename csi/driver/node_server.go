@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v2/volume/obj"
+	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/compute/v2/extensions/volume_attach"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/blockdevice"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/metadata"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/mount"
@@ -526,6 +527,11 @@ func (s *nodeServer) nodeUnpublishEphemeral(req *csi.NodeUnpublishVolumeRequest,
 
 	err := s.Cloud.DetachVolume(instanceID, volumeID)
 	if err != nil {
+		if volume_attach.IsErrAttachNotFound(err) {
+			klog.V(3).Infof("This volume has been detach before: %v", err)
+			return &csi.NodeUnpublishVolumeResponse{}, nil
+		}
+
 		klog.V(3).Infof("Failed to DetachVolume: %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
