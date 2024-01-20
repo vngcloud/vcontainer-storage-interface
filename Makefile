@@ -26,13 +26,13 @@ TAR_FILE	?= rootfs.tar
 GOOS		?= $(shell go env GOOS)
 GOPROXY		?= $(shell go env GOPROXY)
 #VERSION     ?= $(shell git describe --dirty --tags --match='v*')
-VERSION     ?= v0.1.1
+VERSION     ?= v0.1.3
 GOARCH		:=
 GOFLAGS		:=
 TAGS		:=
 LDFLAGS		:= ""
 GOX_LDFLAGS	:= $(shell echo "$(LDFLAGS) -extldflags \"-static\"")
-REGISTRY	?= registry.vngcloud.vn/public
+REGISTRY	?= vcr.vngcloud.vn/81-vks-public
 IMAGE_OS	?= linux
 IMAGE_NAMES	?= vcontainer-storage-interface
 ARCH		?= amd64
