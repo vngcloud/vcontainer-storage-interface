@@ -20,7 +20,14 @@ type (
 		AvailabilityZone string           `json:"availability_zone"`
 		ProjectID        string           `json:"project_id"`
 		Devices          []DeviceMetadata `json:"devices,omitempty"`
+		Meta             Meta             `json:"meta,omitempty"`
 		// ... and other fields we don't care about.  Expand as necessary.
+	}
+
+	Meta struct {
+		Product    string `json:"product,omitempty"`
+		PortalUUID string `json:"portal_uuid,omitempty"`
+		ProjectID  string `json:"project_id,omitempty"`
 	}
 
 	DeviceMetadata struct {

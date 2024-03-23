@@ -51,7 +51,7 @@ func GetProvider() (IVContainer, error) {
 
 func NewVContainer(compute, blockstorage, portal *vclient.ServiceClient, bsOpts BlockStorageOpts, metadataOpts metadata.Opts) IVContainer {
 	if metadataOpts.SearchOrder == "" {
-		metadataOpts.SearchOrder = fmt.Sprintf("%s,%s", metadata.ConfigDriveID, metadata.MetadataID)
+		metadataOpts.SearchOrder = fmt.Sprintf("%s,%s", metadata.MetadataID, metadata.ConfigDriveID)
 	}
 
 	klog.Infof("NewVContainer; metadataOpts is %+v", metadataOpts)

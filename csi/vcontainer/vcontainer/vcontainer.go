@@ -122,7 +122,7 @@ func (s *vContainer) CreateVolume(name string, size uint64, vtype, availability 
 			Size:             size,
 			VolumeTypeId:     vtype,
 			CreatedFrom:      "NEW",
-			PersistentVolume: true,
+			PersistentVolume: false,
 			MultiAttach:      false,
 		})
 
