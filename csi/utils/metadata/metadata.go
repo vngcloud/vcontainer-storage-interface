@@ -9,7 +9,7 @@ func (s *metadataService) GetInstanceID() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return md.UUID, nil
+	return md.Meta.PortalUUID, nil
 }
 
 func (s *metadataService) GetAvailabilityZone() (string, error) {

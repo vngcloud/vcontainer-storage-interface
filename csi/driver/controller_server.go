@@ -153,15 +153,10 @@ func (s *controllerServer) DeleteVolume(ctx context.Context, req *csi.DeleteVolu
 		return nil, status.Error(codes.InvalidArgument, "Volume ID is required")
 	}
 
-	vol, err := s.Cloud.GetVolume(volID)
+	_, err := s.Cloud.GetVolume(volID)
 	if err != nil {
 		klog.Errorf("DeleteVolume; failed to get volume %s; ERR: %v", volID, err)
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to get volume; ERR: %v", err))
-	}
-
-	if vol.PersistentVolume != true {
-		klog.Errorf("DeleteVolume; volume %s is not a persistent volume", volID)
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("volume %s is not a persistent volume", volID))
 	}
 
 	err = s.Cloud.DeleteVolume(volID)

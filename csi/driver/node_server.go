@@ -3,11 +3,11 @@ package driver
 import (
 	"fmt"
 	"github.com/container-storage-interface/spec/lib/go/csi"
-	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v2/volume/obj"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/blockdevice"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/metadata"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/mount"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/vcontainer/vcontainer"
+	obj "github.com/vngcloud/vngcloud-go-sdk/vngcloud/objects"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

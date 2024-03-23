@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/identity/v2/extensions/oauth2"
-	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/identity/v2/tokens"
+	"github.com/vngcloud/vngcloud-go-sdk/vngcloud/services/identity/v2/extensions/oauth2"
+	"github.com/vngcloud/vngcloud-go-sdk/vngcloud/services/identity/v2/tokens"
 )
 
 type (

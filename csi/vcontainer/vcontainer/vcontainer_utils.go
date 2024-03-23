@@ -3,11 +3,11 @@ package vcontainer
 import (
 	"fmt"
 	"github.com/cuongpiger/joat/utils"
-	vclient "github.com/vngcloud/vcontainer-sdk/client"
-	"github.com/vngcloud/vcontainer-sdk/vcontainer"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/client"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/metrics"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/metadata"
+	vclient "github.com/vngcloud/vngcloud-go-sdk/client"
+	"github.com/vngcloud/vngcloud-go-sdk/vngcloud"
 	gcfg "gopkg.in/gcfg.v1"
 	"k8s.io/component-base/metrics/legacyregistry"
 	"k8s.io/klog/v2"
@@ -81,9 +81,9 @@ func createProvider() (IVContainer, error) {
 	vserverV2 := utils.NormalizeURL(cfg.Global.VServerURL) + "v2"
 
 	provider, err := client.NewVContainerClient(&cfg.Global)
-	computeClient, _ := vcontainer.NewCompute(vserverV2, provider)
-	blockstorageClient, _ := vcontainer.NewBlockstorage(vserverV2, provider)
-	portalClient, _ := vcontainer.NewPortal(vserverV1, provider)
+	computeClient, _ := vngcloud.NewServiceClient(vserverV2, provider, "computer-v2")
+	blockstorageClient, _ := vngcloud.NewServiceClient(vserverV2, provider, "blockstorage-v2")
+	portalClient, _ := vngcloud.NewServiceClient(vserverV1, provider, "portal-v1")
 	vcon := NewVContainer(computeClient, blockstorageClient, portalClient, cfg.BlockStorage, cfg.Metadata)
 
 	return vcon, nil

@@ -2,21 +2,18 @@ package vcontainer
 
 import (
 	"fmt"
-	"github.com/vngcloud/vcontainer-sdk/client"
-	"github.com/vngcloud/vcontainer-sdk/vcontainer/pagination"
-	lSnap "github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v1/snapshot"
-	snapV1Obj "github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v1/snapshot/obj"
-	lVolAct "github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v2/extensions/volume_actions"
-	lSnapV2 "github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v2/snapshot"
-	lSnapV2Obj "github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v2/snapshot/obj"
-	lVol "github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v2/volume"
-	"github.com/vngcloud/vcontainer-sdk/vcontainer/services/blockstorage/v2/volume/obj"
-	lVolAtch "github.com/vngcloud/vcontainer-sdk/vcontainer/services/compute/v2/extensions/volume_attach"
-	lServer "github.com/vngcloud/vcontainer-sdk/vcontainer/services/compute/v2/server"
-	serverObj "github.com/vngcloud/vcontainer-sdk/vcontainer/services/compute/v2/server/obj"
-	lPortal "github.com/vngcloud/vcontainer-sdk/vcontainer/services/portal/v1"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/metrics"
 	"github.com/vngcloud/vcontainer-storage-interface/csi/utils/metadata"
+	"github.com/vngcloud/vngcloud-go-sdk/client"
+	"github.com/vngcloud/vngcloud-go-sdk/vngcloud/objects"
+	"github.com/vngcloud/vngcloud-go-sdk/vngcloud/pagination"
+	lSnap "github.com/vngcloud/vngcloud-go-sdk/vngcloud/services/blockstorage/v1/snapshot"
+	lVolAct "github.com/vngcloud/vngcloud-go-sdk/vngcloud/services/blockstorage/v2/extensions/volume_actions"
+	lSnapV2 "github.com/vngcloud/vngcloud-go-sdk/vngcloud/services/blockstorage/v2/snapshot"
+	lVol "github.com/vngcloud/vngcloud-go-sdk/vngcloud/services/blockstorage/v2/volume"
+	lVolAtch "github.com/vngcloud/vngcloud-go-sdk/vngcloud/services/compute/v2/extensions/volume_attach"
+	lServer "github.com/vngcloud/vngcloud-go-sdk/vngcloud/services/compute/v2/server"
+	lPortal "github.com/vngcloud/vngcloud-go-sdk/vngcloud/services/portal/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog/v2"
 	"strings"
@@ -68,11 +65,11 @@ func (s *vContainer) SetupPortalInfo(metadata metadata.IMetadata) error {
 	return nil
 }
 
-func (s *vContainer) ListVolumes(limit int, startingToken string) ([]*obj.Volume, string, error) {
+func (s *vContainer) ListVolumes(limit int, startingToken string) ([]*objects.Volume, string, error) {
 	klog.Infof("ListVolumes; called with limit %d and startingToken %s", limit, startingToken)
 
 	var nextPage string
-	var vols []*obj.Volume
+	var vols []*objects.Volume
 
 	//page, size := standardPaging(limit, startingToken)
 	//opts := lVol.NewListOpts(s.extraInfo.ProjectID, "", page, size)
@@ -93,10 +90,10 @@ func (s *vContainer) ListVolumes(limit int, startingToken string) ([]*obj.Volume
 	return vols, nextPage, nil
 }
 
-func (s *vContainer) GetVolumesByName(name string) ([]*obj.Volume, error) {
+func (s *vContainer) GetVolumesByName(name string) ([]*objects.Volume, error) {
 	klog.Infof("GetVolumesByName; called with name %s", name)
 
-	var vols []*obj.Volume
+	var vols []*objects.Volume
 
 	opts := lVol.NewListOpts(s.extraInfo.ProjectID, name, 0, 0)
 	mc := metrics.NewMetricContext("volume", "list")
@@ -112,7 +109,7 @@ func (s *vContainer) GetVolumesByName(name string) ([]*obj.Volume, error) {
 	return vols, nil
 }
 
-func (s *vContainer) CreateVolume(name string, size uint64, vtype, availability string, snapshotID string, sourcevolID string, tags *map[string]string) (*obj.Volume, error) {
+func (s *vContainer) CreateVolume(name string, size uint64, vtype, availability string, snapshotID string, sourcevolID string, tags *map[string]string) (*objects.Volume, error) {
 	klog.Infof("CreateVolume; called with name %s, size %d, vtype %s, availability %s, snapshotID %s, sourcevolID %s, tags %+v", name, size, vtype, availability, snapshotID, sourcevolID, tags)
 
 	opts := lVol.NewCreateOpts(
@@ -151,7 +148,7 @@ func (s *vContainer) DeleteVolume(volID string) error {
 	return mc.ObserveRequest(err)
 }
 
-func (s *vContainer) GetVolume(volumeID string) (*obj.Volume, error) {
+func (s *vContainer) GetVolume(volumeID string) (*objects.Volume, error) {
 	opts := lVol.NewGetOpts(s.extraInfo.ProjectID, volumeID)
 	mc := metrics.NewMetricContext("volume", "get")
 	result, err := lVol.Get(s.blockstorage, opts)
@@ -162,12 +159,12 @@ func (s *vContainer) GetVolume(volumeID string) (*obj.Volume, error) {
 	return result, nil
 }
 
-func (s *vContainer) GetInstanceByID(instanceID string) (*serverObj.Server, error) {
-	opts := lServer.GetServerOpts{InstanceID: instanceID, ProjectID: s.extraInfo.ProjectID}
+func (s *vContainer) GetInstanceByID(instanceID string) (*objects.Server, error) {
+	opts := lServer.NewGetOpts(s.extraInfo.ProjectID, instanceID)
 	mc := metrics.NewMetricContext("server", "get")
 	result, err := lServer.Get(s.compute, opts)
-	if mc.ObserveRequest(err) != nil {
-		return nil, err
+	if mc.ObserveRequest(err.Error) != nil {
+		return nil, err.Error
 	}
 
 	return result, nil
@@ -189,7 +186,7 @@ func (s *vContainer) AttachVolume(instanceID, volumeID string) (string, error) {
 
 	mc := metrics.NewMetricContext("volume", "attach")
 	opts := lVolAtch.NewCreateOpts(s.extraInfo.ProjectID, instanceID, volumeID)
-	_, err = lVolAtch.Create(s.compute, opts)
+	_, err = lVolAtch.Attach(s.compute, opts)
 
 	if mc.ObserveRequest(err) != nil {
 		return "", err
@@ -248,12 +245,8 @@ func (s *vContainer) DetachVolume(instanceID, volumeID string) error {
 		return fmt.Errorf("volume %s not found", volumeID)
 	}
 
-	if volume.PersistentVolume != true {
-		return fmt.Errorf("volume %s is not persistent volume", volumeID)
-	}
-
 	mc := metrics.NewMetricContext("volume", "detach")
-	_, err = lVolAtch.Delete(s.compute, lVolAtch.NewDeleteOpts(s.extraInfo.ProjectID, instanceID, volumeID))
+	_, err = lVolAtch.Detach(s.compute, lVolAtch.NewDeleteOpts(s.extraInfo.ProjectID, instanceID, volumeID))
 
 	if mc.ObserveRequest(err) != nil {
 		return err
@@ -338,7 +331,7 @@ func (s *vContainer) GetMaxVolLimit() int64 {
 	return defaultMaxVolAttachLimit
 }
 
-func (s *vContainer) CreateSnapshot(name, volID string) (*lSnapV2Obj.Snapshot, error) {
+func (s *vContainer) CreateSnapshot(name, volID string) (*objects.Snapshot, error) {
 	opts := lSnapV2.NewCreateOpts(s.extraInfo.ProjectID, volID,
 		fmt.Sprintf("vContainer volume snapshot of volume %s", volID), true, name, 7)
 	mc := metrics.NewMetricContext("snapshot", "create")
@@ -372,9 +365,9 @@ func (s *vContainer) WaitSnapshotReady(snapshotID string) error {
 	return err
 }
 
-func (s *vContainer) ListSnapshots(page string, size int, volumeID, status, name string) ([]*snapV1Obj.Snapshot, string, error) {
+func (s *vContainer) ListSnapshots(page string, size int, volumeID, status, name string) ([]*objects.Snapshot, string, error) {
 	var nextPage string
-	var lstSnapshot []*snapV1Obj.Snapshot
+	var lstSnapshot []*objects.Snapshot
 
 	p_, s_ := standardPaging(size, page)
 	opts := lSnap.NewListOpts(p_, s_, volumeID, status, name)
@@ -394,8 +387,8 @@ func (s *vContainer) ListSnapshots(page string, size int, volumeID, status, name
 	return lstSnapshot, nextPage, nil
 }
 
-func (s *vContainer) GetSnapshotByID(snapshotID string) (*snapV1Obj.Snapshot, error) {
-	var snapshot *snapV1Obj.Snapshot
+func (s *vContainer) GetSnapshotByID(snapshotID string) (*objects.Snapshot, error) {
+	var snapshot *objects.Snapshot
 	opts := lSnap.NewListOpts(1, 10, "", "", "")
 	mc := metrics.NewMetricContext("snapshot", "get")
 	err := lSnap.List(s.blockstorage, opts).EachPage(func(page pagination.IPage) (bool, error) {
